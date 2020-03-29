@@ -9,14 +9,8 @@ cache:
 
 matrix:
   include:
-    - env: PYTHON_VERSION="3.5" NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
-           SKLEARN_VERSION="0.19.1"
-    - env: PYTHON_VERSION="3.6" NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
-           SKLEARN_VERSION="0.20.3"
     - env: PYTHON_VERSION="3.7" NUMPY_VERSION="*" SCIPY_VERSION="*"
-           SKLEARN_VERSION="*"
-    - env: PYTHON_VERSION="3.7" NUMPY_VERSION="*" SCIPY_VERSION="*"
-           SKLEARN_VERSION="nightly"
+           PANDAS_VERSION="*"
 
 install:
   # install miniconda
@@ -29,22 +23,16 @@ install:
   # create the testing environment
   - conda create -n testenv --yes python=$PYTHON_VERSION pip
   - source activate testenv
-  - |
-      if [ $SKLEARN_VERSION = "nightly" ]; then
-          conda install --yes -c conda-forge numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION
-          # install nightly wheels
-          pip install --pre -f https://sklearn-nightly.scdn8.secure.raxcdn.com scikit-learn
-      else
-          conda install --yes -c conda-forge numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION scikit-learn==$SKLEARN_VERSION
-      fi
-  - pip install codecov cython nose pytest pytest-cov
+  - conda install --yes numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION pandas=$PANDAS_VERSION cython nose pytest pytest-cov
+  - pip install codecov
   - pip install .
 
+#script:
+#  - mkdir for_test
+#  - cd for_test
+#  - pytest -v --cov=dbgen --pyargs dbgen
 script:
-  - pytest -v doc/*rst
-  - mkdir for_test
-  - cd for_test
-  - pytest -v --cov=skltemplate --pyargs skltemplate
+  - coverage run -m unittest || python3 -m unittest || python -m unittest
 
 after_success:
   - codecov
